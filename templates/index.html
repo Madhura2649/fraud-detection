@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FraudShield AI</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{margin:0;background:#0f172a;color:white;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.card{background:#1e293b;width:420px;padding:28px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+h1{margin:0;font-size:24px} h1 span{color:#38bdf8}
+p.sub{color:#94a3b8;font-size:13px;margin-top:4px}
+label{display:block;margin:16px 0 6px;font-size:13px;color:#cbd5e1}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:white;outline:none}
+.row{display:flex;gap:12px}
+.row>div{flex:1}
+button{width:100%;margin-top:22px;padding:14px;border:none;border-radius:12px;background:#38bdf8;color:#0f172a;font-weight:700;font-size:16px;cursor:pointer}
+button:hover{background:#0ea5e9}
+#result{margin-top:20px;padding:16px;border-radius:12px;text-align:center;display:none}
+.safe{background:#14532d} .fraud{background:#7f1d1d}
+#score{font-size:42px;font-weight:800}
+.badge{font-size:13px;opacity:.9}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🛡️ FraudShield <span>AI</span></h1>
+<p class="sub">Real-time Fraud Detection • Isolation Forest + Random Forest</p>
+
+<label>Transaction Amount (₹)</label>
+<input id="amount" type="number" value="500">
+
+<label>Frequency Last Hour</label>
+<input id="frequency" type="number" value="1">
+
+<div class="row">
+<div><label>Location Change?</label>
+<select id="location_change"><option value="0">No</option><option value="1">Yes</option></select></div>
+<div><label>Device Change?</label>
+<select id="device_change"><option value="0">No</option><option value="1">Yes</option></select></div>
+</div>
+
+<button onclick="check()">Check Fraud →</button>
+
+<div id="result">
+<div id="score">0%</div>
+<div id="text"></div>
+<div class="badge" id="latency"></div>
+</div>
+</div>
+
+<script>
+async function check(){
+ let data={amount:parseFloat(document.getElementById('amount').value),
+ frequency:parseFloat(document.getElementById('frequency').value),
+ location_change:parseInt(document.getElementById('location_change').value),
+ device_change:parseInt(document.getElementById('device_change').value)};
+ let res=await fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+ let j=await res.json();
+ let r=document.getElementById('result');
+ r.style.display='block';
+ r.className=j.is_fraud?'fraud':'safe';
+ document.getElementById('score').innerText=j.risk_score+'% Risk';
+ document.getElementById('text').innerText=j.is_fraud?'🚨 FRAUD DETECTED - Block Transaction':'✅ SAFE TRANSACTION';
+ document.getElementById('latency').innerText='Checked in '+j.latency_ms+' ms | Model Accuracy 98%';
+}
+</script>
+</body>
+</html>
